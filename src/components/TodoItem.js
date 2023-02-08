@@ -1,6 +1,7 @@
 import React from 'react';
 import styled, { css } from 'styled-components';
 import { MdDone, MdDelete } from 'react-icons/md';
+import { useTodoDispatch } from '../TodoContext';
 
 const Remove = styled.div`
   display: flex;
@@ -8,11 +9,11 @@ const Remove = styled.div`
   justify-content: center;
   color: #dee2e6;
   font-size: 24px;
+  opacity: 0;
   cursor: pointer;
   &:hover {
     color: #ff6b6b;
   }
-  display: none;
 `;
 
 const TodoItemBlock = styled.div`
@@ -22,7 +23,7 @@ const TodoItemBlock = styled.div`
   padding-bottom: 12px;
   &:hover {
     ${Remove} {
-      display: initial;
+      opacity: 1;
     }
   }
 `;
@@ -57,15 +58,20 @@ const Text = styled.div`
 `;
 
 function TodoItem({ id, done, text }) {
+  const dispatch = useTodoDispatch();
+  const onToggle = () => dispatch({ type: 'TOGGLE', id });
+  const onRemove = () => dispatch({ type: 'REMOVE', id });
   return (
     <TodoItemBlock>
-      <CheckCircle done={done}>{done && <MdDone />}</CheckCircle>
+      <CheckCircle done={done} onClick={onToggle}>
+        {done && <MdDone />}
+      </CheckCircle>
       <Text done={done}>{text}</Text>
-      <Remove>
+      <Remove onClick={onRemove}>
         <MdDelete />
       </Remove>
     </TodoItemBlock>
   );
 }
 
-export default TodoItem;
+export default React.memo(TodoItem);
