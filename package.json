@@ -1,0 +1,8 @@
+{
+  "private": true,
+  "dependencies": {
+    "global": "^4.4.0",
+    "react-async": "^10.0.1",
+    "react-scripts": "^5.0.1"
+  }
+}
