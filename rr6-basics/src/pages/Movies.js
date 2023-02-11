@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, Outlet } from 'react-router-dom';
+import { NavLink, Link, Outlet } from 'react-router-dom';
 import { getMovies } from '../movie_data';
 
 const Movies = () => {
@@ -9,13 +9,18 @@ const Movies = () => {
       <h1>넷플릭스 영화 추천 목록</h1>
       <div>
         {movies.map((movie) => (
-          <Link
+          <NavLink
             to={`/movies/${movie.id}`}
             key={movie.id}
-            style={{ display: 'block' }}
+            style={({ isActive }) => {
+              return {
+                TextDecoration: isActive ? 'underline' : '',
+                color: isActive ? '#FF9E1B' : '',
+              };
+            }}
           >
-            {movie.title}
-          </Link>
+            <p>{movie.title}</p>
+          </NavLink>
         ))}
       </div>
       <hr />
