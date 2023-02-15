@@ -1,8 +1,10 @@
 {
   "private": true,
   "dependencies": {
+    "@reduxjs/toolkit": "^1.9.2",
     "global": "^4.4.0",
     "react-async": "^10.0.1",
-    "react-scripts": "^5.0.1"
+    "react-scripts": "^5.0.1",
+    "recoil": "^0.7.6"
   }
 }
