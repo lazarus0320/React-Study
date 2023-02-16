@@ -1,192 +1,67 @@
-import React, { useState } from 'react';
-import {
-  RecoilRoot,
-  atom,
-  selector,
-  useRecoilState,
-  useRecoilValue,
-  useSetRecoilState,
-} from 'recoil';
+import { Suspense, useRef } from 'react';
+import { useRecoilState } from 'recoil';
+import styled from 'styled-components';
+import { githubInfoState } from './store';
+import Stars from './Stars';
 
-const todoListState = atom({
-  key: 'todoListState',
-  default: [],
-});
+export default function App() {
+  const [githubInfo, setGithubInfo] = useRecoilState(githubInfoState);
 
-const todoListFilterState = atom({
-  key: 'todoListFilterState',
-  default: 'Show All',
-});
+  const userRef = useRef();
+  const repoRef = useRef();
 
-const filteredTodoListState = selector({
-  key: 'filteredTodoListState',
-  get: ({ get }) => {
-    const filter = get(todoListFilterState);
-    const list = get(todoListState);
+  const handleClick = () => {
+    const users = userRef.current.value;
+    const repo = repoRef.current.value;
+    const info = { users, repo };
+    setGithubInfo(info);
+  };
 
-    switch (filter) {
-      case 'Show Completed':
-        return list.filter((item) => item.isComplete);
-      case 'Show Uncompleted':
-        return list.filter((item) => !item.isComplete);
-      default:
-        return list;
-    }
-  },
-});
-
-const todoListStatsState = selector({
-  key: 'todoListStatsState',
-  get: ({ get }) => {
-    const todoList = get(todoListState);
-    const totalNum = todoList.length;
-    const totalCompletedNum = todoList.filter((item) => item.isComplete).length;
-    const totalUnCompletedNum = totalNum - totalCompletedNum;
-    const percentCompleted = totalNum === 0 ? 0 : totalCompletedNum / totalNum;
-
-    return {
-      totalNum,
-      totalCompletedNum,
-      totalUnCompletedNum,
-      percentCompleted,
-    };
-  },
-});
-
-function TodoListStats() {
-  const { totalNum, totalCompletedNum, totalUnCompletedNum, percentCompleted } =
-    useRecoilValue(todoListStatsState);
-
-  const formattedPercentCompleted = Math.round(percentCompleted * 100);
+  const whoseGitHub = githubInfo.users
+    ? `${githubInfo.users}의 ${githubInfo.repo}저장소`
+    : '정보를 입력해주세요';
 
   return (
-    <ul>
-      <li>Total items: {totalNum}</li>
-      <li>Items Completed: {totalCompletedNum}</li>
-      <li>Items not Completed: {totalUnCompletedNum}</li>
-      <li>Percent Completed: {formattedPercentCompleted}</li>
-    </ul>
+    <StyledApp className="App">
+      <div>깃헙 아이디</div>
+      <input type="text" ref={userRef} />
+      <div>레포지토리 이름</div>
+      <input type="text" ref={repoRef} />
+      <button onClick={handleClick} className="btn">
+        제출하기
+      </button>
+      <div>{whoseGitHub}</div>
+      <div>star 개수</div>
+      <Suspense fallback={<div className="stars">loading...</div>}>
+        <Stars className="stars" />
+      </Suspense>
+    </StyledApp>
   );
 }
 
-function TodoListFilters() {
-  const [filter, setFilter] = useRecoilState(todoListFilterState);
-
-  const updateFilter = ({ target: { value } }) => {
-    setFilter(value);
-  };
-
-  return (
-    <>
-      Filter:
-      <select value={filter} onChange={updateFilter}>
-        <option value="Show All">All</option>
-        <option value="Show Completed">Completed</option>
-        <option value="Show Uncompleted">Uncompleted</option>
-      </select>
-    </>
-  );
-}
-
-function TodoList() {
-  const todoList = useRecoilValue(filteredTodoListState);
-
-  return (
-    <>
-      <TodoListStats />
-      <TodoListFilters />
-      <TodoItemCreator />
-
-      {todoList.map((todoItem) => (
-        <TodoItem key={todoItem.id} item={todoItem} />
-      ))}
-    </>
-  );
-}
-
-function TodoItemCreator() {
-  const [inputValue, setInputValue] = useState('');
-  const setTodoList = useSetRecoilState(todoListState);
-
-  const addItem = () => {
-    setTodoList((oldTodoList) => [
-      ...oldTodoList,
-      {
-        id: getId(),
-        text: inputValue,
-        isComplete: false,
-      },
-    ]);
-    setInputValue('');
-  };
-
-  const onChange = ({ target: { value } }) => {
-    setInputValue(value);
-  };
-
-  return (
-    <div>
-      <input type="text" value={inputValue} onChange={onChange} />
-      <button onClick={addItem}>Add</button>
-    </div>
-  );
-}
-
-let id = 0;
-function getId() {
-  return id++;
-}
-
-function TodoItem({ item }) {
-  const [todoList, setTodoList] = useRecoilState(todoListState);
-  const index = todoList.findIndex((listItem) => listItem === item);
-
-  const editItemText = ({ target: { value } }) => {
-    const newList = replaceItemAtIndex(todoList, index, {
-      ...item,
-      text: value,
-    });
-    setTodoList(newList);
-  };
-
-  const toggleItemCompletion = () => {
-    const newList = replaceItemAtIndex(todoList, index, {
-      ...item,
-      isComplete: !item.isComplete,
-    });
-    setTodoList(newList);
-  };
-
-  const deleteItem = () => {
-    const newList = removeItemAtIndex(todoList, index);
-    setTodoList(newList);
-  };
-  return (
-    <div>
-      <input type="text" value={item.text} onChange={editItemText} />
-      <input
-        type="checkbox"
-        checked={item.isComplete}
-        onChange={toggleItemCompletion}
-      />
-      <button onClick={deleteItem}>X</button>
-    </div>
-  );
-}
-
-function replaceItemAtIndex(arr, index, newValue) {
-  return [...arr.slice(0, index), newValue, ...arr.slice(index + 1)];
-}
-
-function removeItemAtIndex(arr, index) {
-  return [...arr.slice(0, index), ...arr.slice(index + 1)];
-}
-
-function App() {
-  return (
-    <RecoilRoot>
-      <TodoList></TodoList>
-    </RecoilRoot>
-  );
-}
-export default App;
+const StyledApp = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  margin: 5rem;
+  width: 20rem;
+  height: 20rem;
+  border: 1px solid black;
+  .btn {
+    display: block;
+  }
+  & > div,
+  & > input,
+  & > .btn {
+    margin-bottom: 1rem;
+  }
+  .stars {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 200px;
+    height: 30px;
+    border: 1px solid blue;
+  }
+`;
