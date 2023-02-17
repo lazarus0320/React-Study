@@ -35,6 +35,7 @@ const pokemonListQuery = selector({
       )}&limit=20`
     );
     const data = await response.json();
+    console.log(data);
     return data.results;
   },
 });
@@ -43,9 +44,10 @@ export const pokemonInfoQuery = (id) =>
   selector({
     key: `pokemonInfoQuery-${id}`,
     get: async () => {
-      const response = await fetch(`https://pokeapi.co/api/v2/type/${id}`);
+      const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
       const data = await response.json();
-      return data.results;
+      console.log(data);
+      return data;
     },
   });
 

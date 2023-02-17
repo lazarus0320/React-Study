@@ -1,5 +1,5 @@
 import React from 'react';
-import { useRecoilValueLoadable } from 'recoil';
+import { useRecoilValueLoadable, useRecoilState } from 'recoil';
 import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { pokemonInfoQuery } from './MainPage';
@@ -51,8 +51,11 @@ const Type = styled.div`
 const PokemonDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const pokemonId = parseInt(id);
 
-  const pokemonInfoLoadable = useRecoilValueLoadable(pokemonInfoQuery(id));
+  const pokemonInfoLoadable = useRecoilValueLoadable(
+    pokemonInfoQuery(pokemonId)
+  );
 
   const handleBack = () => {
     navigate(-1);
@@ -67,29 +70,32 @@ const PokemonDetailPage = () => {
     <div>
       <Title>Pokémon Wiki</Title>
       <Container>
+        <ImageContainer>
+          <PokemonImage
+            src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemonId}.png`}
+            alt={pokemonInfoLoadable.contents.name}
+          />
+        </ImageContainer>
+        {console.log(pokemonInfoLoadable.state)}
         {pokemonInfoLoadable.state === 'loading' && <p>Loading...</p>}
         {pokemonInfoLoadable.state === 'hasValue' && (
           <>
-            <ImageContainer>
-              <PokemonImage
-                src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`}
-                alt={pokemonInfoLoadable.contents.name}
-              />
-            </ImageContainer>
             <PokemonName>{pokemonInfoLoadable.contents.name}</PokemonName>
             <PokemonId>ID: {pokemonInfoLoadable.contents.id}</PokemonId>
-            <TypeContainer>
-              {types.map((type) => (
-                <Type key={type.slot}>{type.type.name}</Type>
-              ))}
-            </TypeContainer>
-            <button onClick={handleBack}>Back</button>
+            {types.length > 0 && (
+              <TypeContainer>
+                {types.map((type) => (
+                  <Type key={type.slot}>{type.type.name}</Type>
+                ))}
+              </TypeContainer>
+            )}
           </>
         )}
         {pokemonInfoLoadable.state === 'hasError' && (
           <p>Error: {pokemonInfoLoadable.contents.message}</p>
         )}
       </Container>
+      <button onClick={handleBack}>Back</button>
     </div>
   );
 };
