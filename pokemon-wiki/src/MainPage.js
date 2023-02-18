@@ -1,6 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { atom, selector, useRecoilState, useRecoilValueLoadable } from 'recoil';
+import {
+  atom,
+  selector,
+  useRecoilState,
+  useRecoilValueLoadable,
+  selectorFamily,
+} from 'recoil';
 import {
   ImageContainer,
   PokemonImage,
@@ -15,6 +21,7 @@ import {
   Id,
   PokemonContainer,
 } from './styles';
+import SearchBar from './SearchBar';
 
 const currentOffsetState = atom({
   key: 'currentOffsetState',
@@ -26,19 +33,50 @@ const currentPokemonIdState = atom({
   default: 1,
 });
 
-const pokemonListQuery = selector({
-  key: 'pokemonListQuery',
-  get: async ({ get }) => {
-    const response = await fetch(
-      `https://pokeapi.co/api/v2/pokemon?offset=${get(
-        currentOffsetState
-      )}&limit=20`
-    );
-    const data = await response.json();
-    console.log(data);
-    return data.results;
-  },
+const pokemonListQuery = selectorFamily({
+  key: 'pokemonList',
+  get:
+    (searchTerm = '') =>
+    async ({ get }) => {
+      const response = await fetch(
+        `https://pokeapi.co/api/v2/pokemon?offset=${get(
+          currentOffsetState
+        )}&limit=20`
+      );
+      const data = await response.json();
+      const pokemonList = data.results.map((result) => {
+        const id = result.url.split('/')[6];
+        return {
+          id,
+          name: result.name,
+          imageUrl: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`,
+        };
+      });
+
+      if (searchTerm) {
+        const filteredList = pokemonList.filter((pokemon) =>
+          pokemon.name.includes(searchTerm.toLowerCase())
+        );
+        return filteredList;
+      }
+
+      return pokemonList;
+    },
 });
+
+// const pokemonListQuery = selector({
+//   key: 'pokemonListQuery',
+//   get: async ({ get }) => {
+//     const response = await fetch(
+//       `https://pokeapi.co/api/v2/pokemon?offset=${get(
+//         currentOffsetState
+//       )}&limit=20`
+//     );
+//     const data = await response.json();
+//     console.log(data);
+//     return data.results;
+//   },
+// });
 
 export const pokemonInfoQuery = (id) =>
   selector({
@@ -52,11 +90,15 @@ export const pokemonInfoQuery = (id) =>
   });
 
 const MainPage = () => {
+  const [searchText, setSearchText] = useState('');
   const [currentOffset, setCurrentOffset] = useRecoilState(currentOffsetState);
-  const pokemonListLoadable = useRecoilValueLoadable(pokemonListQuery);
+  const pokemonListLoadable = useRecoilValueLoadable(
+    pokemonListQuery(searchText)
+  );
   const [currentPokemonId, setCurrentPokemonId] = useRecoilState(
     currentPokemonIdState
   );
+
   const navigate = useNavigate();
 
   const handleNext = () => {
@@ -75,6 +117,7 @@ const MainPage = () => {
   return (
     <div>
       <Title>Pokémon Wiki</Title>
+      <SearchBar setSearchText={setSearchText} />
       <ListContainer>
         {pokemonListLoadable.state === 'loading' && <li>Loading...</li>}
         {pokemonListLoadable.state === 'hasValue' &&
@@ -85,14 +128,12 @@ const MainPage = () => {
               >
                 <ImageContainer>
                   <PokemonImage
-                    src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${
-                      pokemon.url.split('/')[6]
-                    }.png`}
+                    src={pokemon.imageUrl}
                     alt={`${pokemon.name} sprite`}
                   />
                 </ImageContainer>
                 <InfoContainer>
-                  <Id>id. {currentOffset + index + 1}</Id>
+                  <Id>id. {pokemon.id}</Id>
                   <PokemonName>{pokemon.name}</PokemonName>
                 </InfoContainer>
               </PokemonContainer>
