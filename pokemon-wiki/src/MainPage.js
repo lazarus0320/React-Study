@@ -91,7 +91,7 @@ const MainPage = () => {
       <ListContainer>
         {pokemonListLoadable.state === 'loading' && <li>Loading...</li>}
         {pokemonListLoadable.state === 'hasValue' &&
-          pokemonListLoadable.contents.map((pokemon, index) => (
+          pokemonListLoadable.contents.map((pokemon) => (
             <ListItem key={pokemon.name}>
               <PokemonContainer onClick={() => handlePokemonClick(pokemon.id)}>
                 <ImageContainer>

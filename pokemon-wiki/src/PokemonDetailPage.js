@@ -48,6 +48,21 @@ const Type = styled.div`
   border-radius: 10px;
 `;
 
+const BackButton = styled.button`
+  background-color: #f0f0f0;
+  padding: 10px 20px;
+  margin-top: 50px;
+  border-radius: 10px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #000000;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #d0d0d0;
+  }
+`;
+
 const PokemonDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -94,8 +109,8 @@ const PokemonDetailPage = () => {
         {pokemonInfoLoadable.state === 'hasError' && (
           <p>Error: {pokemonInfoLoadable.contents.message}</p>
         )}
+        <BackButton onClick={handleBack}>Back</BackButton>
       </Container>
-      <button onClick={handleBack}>Back</button>
     </div>
   );
 };
