@@ -80,7 +80,9 @@ const MainPage = () => {
         {pokemonListLoadable.state === 'hasValue' &&
           pokemonListLoadable.contents.map((pokemon, index) => (
             <ListItem key={pokemon.name}>
-              <PokemonContainer onClick={() => handlePokemonClick(index + 1)}>
+              <PokemonContainer
+                onClick={() => handlePokemonClick(currentOffset + index + 1)}
+              >
                 <ImageContainer>
                   <PokemonImage
                     src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${
