@@ -20,22 +20,20 @@ const Info = styled.p`
 `;
 
 const InfoContainer = ({ id }) => {
-  const pokemonInfoLoadable = useRecoilValueLoadable(pokemonInfoQuery(id)); // add 1 to the id prop
+  const { state, contents } = useRecoilValueLoadable(pokemonInfoQuery(id + 1));
 
   return (
     <Container>
-      {pokemonInfoLoadable.state === 'loading' && <p>Loading...</p>}
-      {pokemonInfoLoadable.state === 'hasValue' && (
+      {state === 'loading' && <p>Loading...</p>}
+      {state === 'hasValue' && (
         <>
-          <Name>{pokemonInfoLoadable.contents.name}</Name>
-          <Info>ID: {pokemonInfoLoadable.contents.id}</Info>
-          <Info>Height: {pokemonInfoLoadable.contents.height}</Info>
-          <Info>Weight: {pokemonInfoLoadable.contents.weight}</Info>
+          <Name>{contents.name}</Name>
+          <Info>ID: {contents.id}</Info>
+          <Info>Height: {contents.height}</Info>
+          <Info>Weight: {contents.weight}</Info>
         </>
       )}
-      {pokemonInfoLoadable.state === 'hasError' && (
-        <p>Error: {pokemonInfoLoadable.contents.message}</p>
-      )}
+      {state === 'hasError' && <p>Error: {contents.message}</p>}
     </Container>
   );
 };

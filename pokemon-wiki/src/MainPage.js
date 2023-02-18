@@ -23,11 +23,6 @@ import {
 } from './styles';
 import SearchBar from './SearchBar';
 
-const currentOffsetState = atom({
-  key: 'currentOffsetState',
-  default: 0,
-});
-
 const currentPokemonIdState = atom({
   key: 'currentPokemonIdState',
   default: 1,
@@ -39,9 +34,7 @@ const pokemonListQuery = selectorFamily({
     (searchTerm = '') =>
     async ({ get }) => {
       const response = await fetch(
-        `https://pokeapi.co/api/v2/pokemon?offset=${get(
-          currentOffsetState
-        )}&limit=20`
+        `https://pokeapi.co/api/v2/pokemon?limit=10000`
       );
       const data = await response.json();
       const pokemonList = data.results.map((result) => {
@@ -64,20 +57,6 @@ const pokemonListQuery = selectorFamily({
     },
 });
 
-// const pokemonListQuery = selector({
-//   key: 'pokemonListQuery',
-//   get: async ({ get }) => {
-//     const response = await fetch(
-//       `https://pokeapi.co/api/v2/pokemon?offset=${get(
-//         currentOffsetState
-//       )}&limit=20`
-//     );
-//     const data = await response.json();
-//     console.log(data);
-//     return data.results;
-//   },
-// });
-
 export const pokemonInfoQuery = (id) =>
   selector({
     key: `pokemonInfoQuery-${id}`,
@@ -91,7 +70,6 @@ export const pokemonInfoQuery = (id) =>
 
 const MainPage = () => {
   const [searchText, setSearchText] = useState('');
-  const [currentOffset, setCurrentOffset] = useRecoilState(currentOffsetState);
   const pokemonListLoadable = useRecoilValueLoadable(
     pokemonListQuery(searchText)
   );
@@ -100,14 +78,6 @@ const MainPage = () => {
   );
 
   const navigate = useNavigate();
-
-  const handleNext = () => {
-    setCurrentOffset(currentOffset + 20);
-  };
-
-  const handlePrev = () => {
-    setCurrentOffset(Math.max(0, currentOffset - 20));
-  };
 
   const handlePokemonClick = (id) => {
     setCurrentPokemonId(id);
@@ -123,9 +93,7 @@ const MainPage = () => {
         {pokemonListLoadable.state === 'hasValue' &&
           pokemonListLoadable.contents.map((pokemon, index) => (
             <ListItem key={pokemon.name}>
-              <PokemonContainer
-                onClick={() => handlePokemonClick(currentOffset + index + 1)}
-              >
+              <PokemonContainer onClick={() => handlePokemonClick(pokemon.id)}>
                 <ImageContainer>
                   <PokemonImage
                     src={pokemon.imageUrl}
@@ -143,10 +111,6 @@ const MainPage = () => {
           <li>Error: {pokemonListLoadable.contents.message}</li>
         )}
       </ListContainer>
-      <ButtonContainer>
-        <Button onClick={handlePrev}>Prev</Button>
-        <Button onClick={handleNext}>Next</Button>
-      </ButtonContainer>
     </div>
   );
 };
