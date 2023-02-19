@@ -2,8 +2,8 @@ import styled from 'styled-components';
 
 export const ImageContainer = styled.div`
   border: 1px solid black;
-  width: 96px;
-  height: 96px;
+  width: 130px;
+  height: 130px;
   margin-right: 10px;
   margin-left: 10px;
 `;
@@ -15,12 +15,13 @@ export const InfoContainer = styled.div`
   /* width: 200px; */
   flex: 1;
   margin-right: 10px;
-  height: 96px;
+
+  height: 130px;
 `;
 
 export const PokemonImage = styled.img`
-  width: 100%;
-  height: 100%;
+  width: 130px;
+  height: 130px;
   object-fit: contain;
   border: 1px solid black;
 `;
@@ -28,12 +29,12 @@ export const PokemonImage = styled.img`
 export const PokemonName = styled.p`
   font-size: 18px;
   font-weight: bold;
-  margin: 10px 0 0 10px;
+  margin: 10px 0 0 20px;
 `;
 
 export const Id = styled.p`
   font-size: 15px;
-  margin: 10px 0 0 10px;
+  margin: 10px 0 0 20px;
 `;
 
 export const Information = styled.p`
@@ -75,6 +76,7 @@ export const Title = styled.h1`
   text-shadow: 2px 2px #c10707;
   margin-top: 50px;
   margin-bottom: 50px;
+  cursor: pointer;
 `;
 
 export const PokemonContainer = styled.div`
@@ -83,7 +85,7 @@ export const PokemonContainer = styled.div`
   align-items: center;
   border: 1px solid black;
   width: 500px;
-  height: 120px;
+  height: 150px;
   margin-bottom: 10px;
   cursor: pointer;
 

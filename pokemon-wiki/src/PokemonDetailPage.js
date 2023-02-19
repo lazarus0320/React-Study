@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { pokemonInfoQuery } from './MainPage';
 import { ImageContainer, PokemonImage } from './styles';
+import { Type } from './Type';
 
 const Container = styled.div`
   display: flex;
@@ -34,18 +35,11 @@ const PokemonId = styled.p`
   font-weight: bold;
 `;
 
-const TypeContainer = styled.div`
+export const TypeContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   margin-top: 20px;
-`;
-
-const Type = styled.div`
-  background-color: #f0f0f0;
-  padding: 5px 10px;
-  margin: 5px;
-  border-radius: 10px;
 `;
 
 const BackButton = styled.button`
@@ -100,7 +94,9 @@ const PokemonDetailPage = () => {
             {types.length > 0 && (
               <TypeContainer>
                 {types.map((type) => (
-                  <Type key={type.slot}>{type.type.name}</Type>
+                  <Type key={type.slot} name={type.type.name}>
+                    {type.type.name}
+                  </Type>
                 ))}
               </TypeContainer>
             )}

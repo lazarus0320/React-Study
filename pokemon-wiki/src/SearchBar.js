@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { useRecoilState } from 'recoil';
+import { searchTermState } from './MainPage';
+import { debounce } from 'lodash';
 
 const SearchContainer = styled.div`
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   margin-right: 220px;
+  margin-top: 22px;
 `;
 
 const SearchInput = styled.input`
@@ -15,13 +19,11 @@ const SearchInput = styled.input`
   border: 1px solid #ccc;
 `;
 
-const SearchBar = ({ setSearchText }) => {
-  const [value, setValue] = useState('');
+const SearchBar = () => {
+  const [searchTerm, setSearchTerm] = useRecoilState(searchTermState);
 
-  const handleChange = (e) => {
-    const inputValue = e.target.value;
-    setValue(inputValue);
-    setSearchText(inputValue);
+  const handleSearchInputChange = (e) => {
+    setSearchTerm(e.target.value);
   };
 
   return (
@@ -29,8 +31,8 @@ const SearchBar = ({ setSearchText }) => {
       <SearchInput
         type="text"
         placeholder="Search Pokémon..."
-        value={value}
-        onChange={handleChange}
+        value={searchTerm}
+        onChange={handleSearchInputChange}
       />
     </SearchContainer>
   );

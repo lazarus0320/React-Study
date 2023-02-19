@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import styled from 'styled-components';
 import {
   atom,
   selector,
@@ -22,40 +23,104 @@ import {
   PokemonContainer,
 } from './styles';
 import SearchBar from './SearchBar';
+import TypeButtons from './ButtonStyle';
+import { selectedTypeState } from './ButtonStyle';
+import { Type } from './Type';
+
+const TypeContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  padding-left: 10px;
+`;
 
 const currentPokemonIdState = atom({
   key: 'currentPokemonIdState',
   default: 1,
 });
 
-const pokemonListQuery = selectorFamily({
-  key: 'pokemonList',
-  get:
-    (searchTerm = '') =>
-    async ({ get }) => {
-      const response = await fetch(
-        `https://pokeapi.co/api/v2/pokemon?limit=10000`
-      );
-      const data = await response.json();
-      const pokemonList = data.results.map((result) => {
-        const id = result.url.split('/')[6];
-        return {
-          id,
-          name: result.name,
-          imageUrl: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`,
-        };
-      });
-
-      if (searchTerm) {
-        const filteredList = pokemonList.filter((pokemon) =>
-          pokemon.name.includes(searchTerm.toLowerCase())
-        );
-        return filteredList;
-      }
-
-      return pokemonList;
-    },
+export const searchTermState = atom({
+  key: 'searchTermState',
+  default: '',
 });
+
+const pokemonListQuery = selector({
+  key: 'pokemonList',
+  get: async ({ get }) => {
+    const selectedTypes = get(selectedTypeState);
+    const searchTerm = get(searchTermState);
+    console.log(searchTerm);
+
+    const response = await fetch(
+      `https://pokeapi.co/api/v2/pokemon?limit=10000`
+    );
+    const data = await response.json();
+    const pokemonList = data.results.map((result) => {
+      const id = result.url.split('/')[6];
+      return {
+        id,
+        name: result.name,
+        types: [],
+        imageUrl: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`,
+      };
+    });
+
+    const pokemonDetailsRequests = pokemonList.map((pokemon) =>
+      fetch(`https://pokeapi.co/api/v2/pokemon/${pokemon.id}`)
+    );
+    const pokemonDetailsResponses = await Promise.all(pokemonDetailsRequests);
+    const pokemonDetailsJson = await Promise.all(
+      pokemonDetailsResponses.map((response) => response.json())
+    );
+
+    pokemonDetailsJson.forEach((pokemonDetails, index) => {
+      const types = pokemonDetails.types.map((type) => type.type.name);
+      pokemonList[index].types = types;
+    });
+
+    let filteredList = pokemonList;
+    if (searchTerm) {
+      filteredList = filteredList.filter((pokemon) =>
+        pokemon.name.includes(searchTerm.toLowerCase())
+      );
+    }
+    if (selectedTypes.length > 0) {
+      filteredList = filteredList.filter((pokemon) =>
+        selectedTypes.every((type) => pokemon.types.includes(type))
+      );
+    }
+    return filteredList;
+  },
+});
+
+// const pokemonListQuery = selectorFamily({
+//   key: 'pokemonList',
+//   get:
+//     (searchTerm = '') =>
+//     async ({ get }) => {
+//       const response = await fetch(
+//         `https://pokeapi.co/api/v2/pokemon?limit=10000`
+//       );
+//       const data = await response.json();
+//       const pokemonList = data.results.map((result) => {
+//         const id = result.url.split('/')[6];
+//         return {
+//           id,
+//           name: result.name,
+//           imageUrl: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`,
+//         };
+//       });
+
+//       if (searchTerm) {
+//         const filteredList = pokemonList.filter((pokemon) =>
+//           pokemon.name.includes(searchTerm.toLowerCase())
+//         );
+//         return filteredList;
+//       }
+
+//       return pokemonList;
+//     },
+// });
 
 export const pokemonInfoQuery = (id) =>
   selector({
@@ -69,10 +134,8 @@ export const pokemonInfoQuery = (id) =>
   });
 
 const MainPage = () => {
-  const [searchText, setSearchText] = useState('');
-  const pokemonListLoadable = useRecoilValueLoadable(
-    pokemonListQuery(searchText)
-  );
+  const [searchText, setSearchText] = useState(searchTermState);
+  const pokemonListLoadable = useRecoilValueLoadable(pokemonListQuery);
   const [currentPokemonId, setCurrentPokemonId] = useRecoilState(
     currentPokemonIdState
   );
@@ -84,10 +147,15 @@ const MainPage = () => {
     navigate(`/pokemon/${id}`);
   };
 
+  const handleTitleClick = () => {
+    navigate(0);
+  };
+
   return (
     <div>
-      <Title>Pokémon Wiki</Title>
-      <SearchBar setSearchText={setSearchText} />
+      <Title onClick={handleTitleClick}>Pokémon Wiki</Title>
+      <TypeButtons />
+      <SearchBar />
       <ListContainer>
         {pokemonListLoadable.state === 'loading' && <li>Loading...</li>}
         {pokemonListLoadable.state === 'hasValue' &&
@@ -103,6 +171,11 @@ const MainPage = () => {
                 <InfoContainer>
                   <Id>id. {pokemon.id}</Id>
                   <PokemonName>{pokemon.name}</PokemonName>
+                  <TypeContainer>
+                    {pokemon.types.map((type) => (
+                      <Type key={type} name={type} />
+                    ))}
+                  </TypeContainer>
                 </InfoContainer>
               </PokemonContainer>
             </ListItem>
