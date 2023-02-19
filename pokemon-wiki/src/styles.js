@@ -54,6 +54,11 @@ export const ListItem = styled.li`
   margin: 10px;
 `;
 
+export const RowRendering = styled.li`
+  display: flex;
+  flex-direction: row;
+`;
+
 export const ButtonContainer = styled.div`
   display: flex;
   justify-content: center;

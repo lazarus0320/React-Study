@@ -21,11 +21,13 @@ import {
   InfoContainer,
   Id,
   PokemonContainer,
+  RowRendering,
 } from './styles';
 import SearchBar from './SearchBar';
 import TypeButtons from './ButtonStyle';
 import { selectedTypeState } from './ButtonStyle';
 import { Type } from './Type';
+import { LikeButton } from './LikedButton';
 
 const TypeContainer = styled.div`
   display: flex;
@@ -42,6 +44,11 @@ const currentPokemonIdState = atom({
 export const searchTermState = atom({
   key: 'searchTermState',
   default: '',
+});
+
+export const likedPokemonsState = atom({
+  key: 'likedPokemonState',
+  default: [],
 });
 
 const pokemonListQuery = selector({
@@ -93,35 +100,6 @@ const pokemonListQuery = selector({
   },
 });
 
-// const pokemonListQuery = selectorFamily({
-//   key: 'pokemonList',
-//   get:
-//     (searchTerm = '') =>
-//     async ({ get }) => {
-//       const response = await fetch(
-//         `https://pokeapi.co/api/v2/pokemon?limit=10000`
-//       );
-//       const data = await response.json();
-//       const pokemonList = data.results.map((result) => {
-//         const id = result.url.split('/')[6];
-//         return {
-//           id,
-//           name: result.name,
-//           imageUrl: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`,
-//         };
-//       });
-
-//       if (searchTerm) {
-//         const filteredList = pokemonList.filter((pokemon) =>
-//           pokemon.name.includes(searchTerm.toLowerCase())
-//         );
-//         return filteredList;
-//       }
-
-//       return pokemonList;
-//     },
-// });
-
 export const pokemonInfoQuery = (id) =>
   selector({
     key: `pokemonInfoQuery-${id}`,
@@ -139,6 +117,17 @@ const MainPage = () => {
   const [currentPokemonId, setCurrentPokemonId] = useRecoilState(
     currentPokemonIdState
   );
+  const [likedPokemons, setLikedPokemons] = useRecoilState(likedPokemonsState);
+
+  const handleLikeClick = (event, id) => {
+    event.stopPropagation();
+    setLikedPokemons((prevLikedPokemons) => {
+      if (prevLikedPokemons.includes(id)) {
+        return prevLikedPokemons.filter((prevId) => prevId !== id); // 하트 눌렀는데 이미 리스트에 있으면 제외
+      }
+      return [...prevLikedPokemons, id]; //
+    });
+  };
 
   const navigate = useNavigate();
 
@@ -169,7 +158,13 @@ const MainPage = () => {
                   />
                 </ImageContainer>
                 <InfoContainer>
-                  <Id>id. {pokemon.id}</Id>
+                  <RowRendering>
+                    <Id>id. {pokemon.id}</Id>
+                    <LikeButton
+                      isLiked={likedPokemons.includes(pokemon.id)}
+                      onClick={(event) => handleLikeClick(event, pokemon.id)}
+                    />
+                  </RowRendering>
                   <PokemonName>{pokemon.name}</PokemonName>
                   <TypeContainer>
                     {pokemon.types.map((type) => (
