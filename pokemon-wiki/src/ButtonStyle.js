@@ -13,6 +13,10 @@ const StyledButton = styled.button`
   cursor: pointer;
 `;
 
+export const showLikedButton = styled.button`
+  margin: 10px;
+`;
+
 const ButtonGroup = styled.div`
   display: flex;
   flex-wrap: wrap;

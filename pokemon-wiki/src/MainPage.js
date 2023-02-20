@@ -7,6 +7,7 @@ import {
   useRecoilState,
   useRecoilValueLoadable,
   selectorFamily,
+  useSetRecoilState,
 } from 'recoil';
 import {
   ImageContainer,
@@ -25,7 +26,7 @@ import {
 } from './styles';
 import SearchBar from './SearchBar';
 import TypeButtons from './ButtonStyle';
-import { selectedTypeState } from './ButtonStyle';
+import { selectedTypeState, showLikedButton } from './ButtonStyle';
 import { Type } from './Type';
 import { LikeButton } from './LikedButton';
 
@@ -51,13 +52,16 @@ export const likedPokemonsState = atom({
   default: [],
 });
 
+const showLikedOnlyState = atom({
+  key: 'showLikedOnlyState',
+  default: false,
+});
+
 const pokemonListQuery = selector({
   key: 'pokemonList',
   get: async ({ get }) => {
     const selectedTypes = get(selectedTypeState);
     const searchTerm = get(searchTermState);
-    console.log(searchTerm);
-
     const response = await fetch(
       `https://pokeapi.co/api/v2/pokemon?limit=10000`
     );
@@ -118,6 +122,14 @@ const MainPage = () => {
     currentPokemonIdState
   );
   const [likedPokemons, setLikedPokemons] = useRecoilState(likedPokemonsState);
+  const [showLikedOnly, setShowLikedOnly] = useRecoilState(showLikedOnlyState);
+  const [selectedTypes, setSelectedTypes] = useRecoilState(selectedTypeState);
+
+  const handleLikedOnlyButtonClick = () => {
+    setShowLikedOnly(!showLikedOnly);
+    setSearchText('');
+    setSelectedTypes([]);
+  };
 
   const handleLikeClick = (event, id) => {
     event.stopPropagation();
@@ -144,37 +156,44 @@ const MainPage = () => {
     <div>
       <Title onClick={handleTitleClick}>Pokémon Wiki</Title>
       <TypeButtons />
+      <button onClick={handleLikedOnlyButtonClick}>favorite</button>
       <SearchBar />
       <ListContainer>
         {pokemonListLoadable.state === 'loading' && <li>Loading...</li>}
         {pokemonListLoadable.state === 'hasValue' &&
-          pokemonListLoadable.contents.map((pokemon) => (
-            <ListItem key={pokemon.name}>
-              <PokemonContainer onClick={() => handlePokemonClick(pokemon.id)}>
-                <ImageContainer>
-                  <PokemonImage
-                    src={pokemon.imageUrl}
-                    alt={`${pokemon.name} sprite`}
-                  />
-                </ImageContainer>
-                <InfoContainer>
-                  <RowRendering>
-                    <Id>id. {pokemon.id}</Id>
-                    <LikeButton
-                      isLiked={likedPokemons.includes(pokemon.id)}
-                      onClick={(event) => handleLikeClick(event, pokemon.id)}
+          pokemonListLoadable.contents
+            .filter(
+              (pokemon) => !showLikedOnly || likedPokemons.includes(pokemon.id)
+            )
+            .map((pokemon) => (
+              <ListItem key={pokemon.name}>
+                <PokemonContainer
+                  onClick={() => handlePokemonClick(pokemon.id)}
+                >
+                  <ImageContainer>
+                    <PokemonImage
+                      src={pokemon.imageUrl}
+                      alt={`${pokemon.name} sprite`}
                     />
-                  </RowRendering>
-                  <PokemonName>{pokemon.name}</PokemonName>
-                  <TypeContainer>
-                    {pokemon.types.map((type) => (
-                      <Type key={type} name={type} />
-                    ))}
-                  </TypeContainer>
-                </InfoContainer>
-              </PokemonContainer>
-            </ListItem>
-          ))}
+                  </ImageContainer>
+                  <InfoContainer>
+                    <RowRendering>
+                      <Id>id. {pokemon.id}</Id>
+                      <LikeButton
+                        isLiked={likedPokemons.includes(pokemon.id)}
+                        onClick={(event) => handleLikeClick(event, pokemon.id)}
+                      />
+                    </RowRendering>
+                    <PokemonName>{pokemon.name}</PokemonName>
+                    <TypeContainer>
+                      {pokemon.types.map((type) => (
+                        <Type key={type} name={type} />
+                      ))}
+                    </TypeContainer>
+                  </InfoContainer>
+                </PokemonContainer>
+              </ListItem>
+            ))}
         {pokemonListLoadable.state === 'hasError' && (
           <li>Error: {pokemonListLoadable.contents.message}</li>
         )}
