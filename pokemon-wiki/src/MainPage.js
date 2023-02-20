@@ -29,6 +29,7 @@ import TypeButtons from './ButtonStyle';
 import { selectedTypeState, showLikedButton } from './ButtonStyle';
 import { Type } from './Type';
 import { LikeButton } from './LikedButton';
+import { Favorite } from './FavoriteButton';
 
 const TypeContainer = styled.div`
   display: flex;
@@ -155,9 +156,10 @@ const MainPage = () => {
   return (
     <div>
       <Title onClick={handleTitleClick}>Pokémon Wiki</Title>
-      <TypeButtons />
-      <button onClick={handleLikedOnlyButtonClick}>favorite</button>
+
+      <Favorite onClick={handleLikedOnlyButtonClick}></Favorite>
       <SearchBar />
+      <TypeButtons />
       <ListContainer>
         {pokemonListLoadable.state === 'loading' && <li>Loading...</li>}
         {pokemonListLoadable.state === 'hasValue' &&
