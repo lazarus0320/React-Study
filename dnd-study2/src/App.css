@@ -1,0 +1,14 @@
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 200px;
+  height: 100px;
+  margin: 10px;
+  border: 1px solid gray;
+  font-size: 32px;
+}
+
+.container--active {
+  background-color: #ccc;
+}
